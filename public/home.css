@@ -89,7 +89,7 @@ body {
     border: 1px solid #ebb7c4;
     padding: 1px 3px;
     border-radius: 3px;
-    font-weight: 700 ;
+    font-weight: 600 ;
 }
 
 .controls .clear-btn {
@@ -97,7 +97,7 @@ body {
     border: none;
     font-size: 14px;
     color: #fff;
-    padding: 7px 13px;
+    padding: 7px 9px;
     border-radius: 4px;
     background: #eb40d4;
     cursor: pointer;
@@ -125,11 +125,11 @@ body {
     margin-bottom: 0;
 }
 
-.task label {
+.task .box-task {
     display: flex;
 }
 
-.task label input {
+.task .box-task input {
     margin-top: 6px;
     margin-right: 20px;
     width: 20px;
@@ -138,7 +138,7 @@ body {
     cursor: pointer;
 }
 
-.task label span {
+.task .box-task span {
     font-size: 20px;
     text-transform: capitalize;
     vertical-align: middle;
@@ -171,6 +171,7 @@ body {
     border-radius: 5px;
     outline: none;
     border: 0.5px solid rgb(107, 107, 107);
+    cursor: auto;
 }
 
 .checked {

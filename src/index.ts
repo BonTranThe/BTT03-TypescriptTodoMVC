@@ -5,6 +5,7 @@ const listTodo = (<HTMLElement>document.querySelector('.task-box'))
 const dockingControl = (<HTMLElement>document.querySelector('.controls'))
 const quantity = (<HTMLElement>document.querySelector('.count'))
 const clearingAll =(<HTMLButtonElement>document.querySelector('.clear-btn'))
+const filterSelector = document.querySelectorAll('.filters > span')
 
 interface todo{
   content?: string
@@ -28,6 +29,11 @@ vChecking?.addEventListener('click', checkingAll)
 clearingAll.addEventListener('click', clearingAllCompleted)
 
 //Function
+function saveLocal() {
+  localStorage.setItem('todo-list', JSON.stringify(todos))
+  showTodos(idFilter)
+}
+
 function showTodos(idFilter: string) {
   let li: string = ''
   let todoPending: todo[]
@@ -43,10 +49,10 @@ function showTodos(idFilter: string) {
 
       if (idFilter === item.status || idFilter === 'all') {
         li += `<li class="task">
-                <label>
+                <div class="box-task">
                   <input onclick="updatingCheck(this)" type="checkbox" id="${index}" ${itemCompleted}>
                   <span ondblclick="editTodo(this)" class="${index} ${itemCompleted}">${item.content}</span>
-                </label>
+                </div>
                 <div class="task-close">
                   <i onclick="deletingTodo(${index})" class="fas fa-trash-alt"></i>
                 </div>
@@ -103,32 +109,35 @@ function saveTodos(e: any) {
 
     todos.push(todoInfo)
     inputtingTodos.value = ''
-    localStorage.setItem('todo-list', JSON.stringify(todos))
-    showTodos(idFilter)
+    saveLocal();
   }
 }
 
 function updatingCheck(e: any) {
   count = todos.length
   let taskContent = e?.parentElement?.lastElementChild
+  let listTodo = e?.parentElement?.parentElement
+
   let todoCompleted: todo[]
   let todoPending: todo[]
-
   if (e.checked) {
     taskContent.classList.add('checked')
-    // taskContent.style.textDecoration = 'line-through'
     taskContent.style.opacity = '0.5'
-    clearingAll.style.opacity = '1'
     todos[e.id].status = 'completed'
   } else {
     taskContent.classList.remove('checked')
-    // taskContent.style.textDecoration = 'none'
     taskContent.style.opacity = '1'
     clearingAll.style.opacity = '0'
     todos[e.id].status = 'pending'
   }
 
   todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed')
+  if (todoCompleted.length > 0) {
+    clearingAll.style.opacity = '1'
+  } else {
+    clearingAll.style.opacity = '0'
+  }
+
   if (todoCompleted.length === todos.length) {
     vChecking.classList.add('check-all')
     vChecking.style.opacity = '1'
@@ -140,6 +149,14 @@ function updatingCheck(e: any) {
   todoPending = todos.filter(todoPending => todoPending.status === 'pending')
   if (todoPending.length === todos.length) {
     clearingAll.style.opacity = '0'
+  }
+
+  if (idFilter === 'pending' && e.checked === true) {
+    listTodo.style.display = 'none'
+  } else if (idFilter === 'completed' && e.checked === false) {
+    listTodo.style.display = 'none'
+  } else {
+    listTodo.style.display = 'flex'
   }
 
   quantity.innerText = `${count-todoCompleted.length}`
@@ -160,8 +177,7 @@ function checkingAll() {
       item.status = 'pending'
     })
   }
-  localStorage.setItem('todo-list', JSON.stringify(todos))
-  showTodos(idFilter)
+  saveLocal();
 }
 
 function deletingTodo(idDelete: any) {
@@ -178,7 +194,6 @@ function clearingAllCompleted() {
   let allTodoPending: todo[]
   allTodoPending= todos.filter(allTodoPending => allTodoPending.status !== 'completed')
   todos = allTodoPending;
-  console.log(todos);
 
   if (todos.length === 0) {
     vChecking.style.display = 'none'
@@ -186,8 +201,7 @@ function clearingAllCompleted() {
   }
   vChecking.classList.remove('check-all')
   clearingAll.style.opacity = '0'
-  localStorage.setItem('todo-list', JSON.stringify(todos))
-  showTodos(idFilter)
+  saveLocal();
 }
 
 function editTodo(content: any) {
@@ -202,27 +216,74 @@ function editTodo(content: any) {
 
 function editContent(input: any) {
   const spanTag: any = input.parentElement
+  const liTodo: any = input.parentElement.parentElement.parentElement;
   const deletingSelector =(<HTMLElement>spanTag.parentElement.parentElement.lastElementChild)
+  const spanEdit: any = input.parentElement.firstElementChild
   let boxInput = spanTag.parentElement.firstElementChild;
-  input.addEventListener('keyup', (e: any) => {
-    if (e.keyCode === 13) {
-      e.preventDefault()
-      spanTag.innerText = input.value.trim()
-      input.style.display = 'none'
-      deletingSelector.style.opacity = '1'
-      boxInput.style.opacity = '1'
-      todos[spanTag.class[0]].content = spanTag.innerText
-      localStorage.setItem('todo-list', JSON.stringify(todos))
+  input.addEventListener('blur keyup', (e: any) => {
+    console.log("ahihi");
+    if (e.type === 'blur' || e.keyCode === 13) {
+      console.log('1');
+      if (input.value === '') {
+        liTodo.remove()
+        todos.splice(spanEdit.classList[0], 1)
+        saveLocal()
+      } else {
+        e.preventDefault()
+        console.log(spanTag);
+        spanTag.innerText = input.value
+        input.style.display = 'none'
+        deletingSelector.style.opacity = '1'
+        boxInput.style.opacity = '1'
+        todos[spanTag?.classList[0]].content = spanTag.innerText
+        saveLocal()
+      }
+    } else {
+      console.log('2');
     }
+    // if (input.value === '') {
+    //   if (e.keyCode === 13) {
+    //     liTodo.remove();
+    //     todos.splice(spanEdit.classList[0], 1)
+    //     saveLocal()
+    //   }
+    // } else {
+    //   if (e.keyCode === 13) {
+    //     console.log("2");
+    //     e.preventDefault()
+    //     console.log(spanTag);
+    //     spanTag.innerText = input.value
+    //     input.style.display = 'none'
+    //     deletingSelector.style.opacity = '1'
+    //     boxInput.style.opacity = '1'
+    //     todos[spanTag?.classList[0]].content = spanTag.innerText
+    //     saveLocal()
+    //   }
+    // }
   })
 
-  input.addEventListener('blur', (e: any) => {
-    e.preventDefault()
-    spanTag.innerText = input.value.trim()
-    input.style.display = 'none'
-    deletingSelector.style.opacity = '1'
-    boxInput.style.opacity = '1'
-    todos[spanTag.classList[0]].content = spanTag.innerText
-    localStorage.setItem('todo-list', JSON.stringify(todos))
-  })
+  // input.addEventListener('blur', (e: any) => {
+  //   if (input.value === '') {
+  //     liTodo.remove();
+  //     todos.splice(spanEdit.classList[0], 1)
+  //     saveLocal();
+  //   } else {
+  //     e.preventDefault()
+  //     spanTag.innerText = input.value
+  //     input.style.display = 'none'
+  //     deletingSelector.style.opacity = '1'
+  //     boxInput.style.opacity = '1'
+  //     todos[spanTag?.classList[0]].content = spanTag.innerText
+  //     saveLocal();
+  //   }
+  // })
 }
+
+filterSelector.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document?.querySelector('span.active')?.classList.remove('active');
+    btn.classList.add('active');
+    showTodos(btn.id)
+    return idFilter = btn.id
+  })
+})
