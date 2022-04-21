@@ -149,16 +149,21 @@ body {
 }
 
 .task-close i {
-    display: none;
+    display: flex;
     padding: 5px 0;
     margin-right: 10px;
+    width: 26px;
+    height: 26px;
+    font-size: 26px;
+    transition: 0.5s all;
+    opacity: 0.7;
+}
+.task-close i:hover {
+    transform: scale(1.1);
+    opacity: 1;
 }
 
-.task-box .task:hover i {
-    display: flex;
-}
-
-.completed {
+.checked {
     text-decoration: line-through;
     opacity: 0.5;
 }

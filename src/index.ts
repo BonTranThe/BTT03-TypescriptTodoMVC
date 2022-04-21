@@ -1,6 +1,6 @@
 //Selector
 const inputtingTodos =(<HTMLInputElement>document.querySelector('.task-input input'))
-const vChecking = (<HTMLElement>document.querySelector('.task-input i'))
+const vChecking = (<HTMLIFrameElement>document.querySelector('.task-input i'))
 const listTodo = (<HTMLElement>document.querySelector('.task-box'))
 const dockingControl = (<HTMLElement>document.querySelector('.controls'))
 const quantity = (<HTMLElement>document.querySelector('.count'))
@@ -23,6 +23,7 @@ todos = JSON.parse(localStorage.getItem('todo-list') || '[]')
 // Listener Event
 inputtingTodos?.addEventListener('keyup', saveTodos)
 vChecking?.addEventListener('click', checkingAll)
+clearingAll.addEventListener('click', clearingAllCompleted)
 
 //Function
 function showTodos(idFilter: string) {
@@ -42,10 +43,10 @@ function showTodos(idFilter: string) {
         li += `<li class="task">
                 <label>
                   <input onclick="updatingCheck(this)" type="checkbox" id="${index}" ${itemCompleted}>
-                  <span class="${index}" ${itemCompleted}>${item.content}</span>
+                  <span class="${index} ${itemCompleted}">${item.content}</span>
                 </label>
                 <div class="task-close">
-                  <i onclick="deletingTodo(this)" class="fa-solid fa-xmark"></i>
+                  <i onclick="deletingTodo(${index})" class="fas fa-trash-alt"></i>
                 </div>
               </li>`;
       }
@@ -61,7 +62,9 @@ function showTodos(idFilter: string) {
   if (todoPending.length === 0 || todoPending.length === todos.length){
     clearingAll.style.opacity = '0'
     vChecking.style.opacity = '0.1'
+    vChecking.classList.remove('check-all')
   }
+
   todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed');
   if (todoCompleted.length === todos.length){
     clearingAll.style.opacity = '1'
@@ -79,6 +82,7 @@ function showTodos(idFilter: string) {
   } else {
     dockingControl.style.display = 'none'
     vChecking.style.display = 'none'
+    quantity.innerText = `${count}`
   }
 }
 showTodos(idFilter)
@@ -110,17 +114,19 @@ function updatingCheck(e: any) {
 
   if (e.checked) {
     taskContent.classList.add('checked')
+    // taskContent.style.textDecoration = 'line-through'
+    taskContent.style.opacity = '0.5'
     clearingAll.style.opacity = '1'
     todos[e.id].status = 'completed'
   } else {
     taskContent.classList.remove('checked')
+    // taskContent.style.textDecoration = 'none'
+    taskContent.style.opacity = '1'
+    clearingAll.style.opacity = '0'
     todos[e.id].status = 'pending'
   }
 
   todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed')
-  console.log(todoCompleted.length);
-
-
   if (todoCompleted.length === todos.length) {
     vChecking.classList.add('check-all')
     vChecking.style.opacity = '1'
@@ -163,5 +169,21 @@ function deletingTodo(idDelete: any) {
     dockingControl.style.display = 'none'
     clearingAll.style.display = 'none'
   }
+  showTodos(idFilter)
+}
+
+function clearingAllCompleted() {
+  let allTodoPending: todo[]
+  allTodoPending= todos.filter(allTodoPending => allTodoPending.status !== 'completed')
+  todos = allTodoPending;
+  console.log(todos);
+
+  if (todos.length === 0) {
+    vChecking.style.display = 'none'
+    dockingControl.style.display = 'none'
+  }
+  vChecking.classList.remove('check-all')
+  clearingAll.style.opacity = '0'
+  localStorage.setItem('todo-list', JSON.stringify(todos))
   showTodos(idFilter)
 }
