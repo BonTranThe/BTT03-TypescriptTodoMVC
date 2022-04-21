@@ -21,6 +21,7 @@ todos = JSON.parse(localStorage.getItem('todo-list') || '[]');
 
 // Listener Event
 inputtingTodos?.addEventListener('keyup', saveTodos);
+vChecking?.addEventListener('click', checkingAll);
 
 //Function
 function showTodos(idFilter: string) {
@@ -57,11 +58,13 @@ function showTodos(idFilter: string) {
   //fix bug hide-show btn clear all
   todoPending = todos.filter(todoPending => todoPending.status === 'pending');
   if (todoPending.length === 0 || todoPending.length === todos.length){
-    clearingAll.style.opacity = '0';
+    clearingAll.style.opacity = '0'
+    vChecking.style.opacity = '0.1'
   }
   todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed');
   if (todoCompleted.length > 0 || todoCompleted.length === todos.length){
-    clearingAll.style.opacity = '1';
+    clearingAll.style.opacity = '1'
+    vChecking.style.opacity = '1'
   }
 
   listTodo.innerHTML = li;
@@ -124,5 +127,22 @@ function updatingCheck(e: any) {
 
   quantity.innerText = `${count-todoCompleted.length}`;
   localStorage.setItem('todo-list', JSON.stringify(todos))
+}
 
+function checkingAll() {
+  if (vChecking.classList.contains('check-all') === false) {
+    clearingAll.style.opacity = '1'
+    vChecking.classList.add('check-all')
+    todos.forEach( (item) => {
+      item.status = 'completed'
+    })
+  } else {
+    clearingAll.style.opacity = '0.1'
+    vChecking.classList.remove('check-all')
+    todos.forEach( (item) => {
+      item.status = 'pending'
+    })
+  }
+  localStorage.setItem('todo-list', JSON.stringify(todos))
+  showTodos(idFilter);
 }
