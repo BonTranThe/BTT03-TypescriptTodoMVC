@@ -11,8 +11,10 @@ interface todo{
   status?: string
 }
 //window running
-window.updatingCheck = updatingCheck;
-window.deletingTodo = deletingTodo;
+window.updatingCheck = updatingCheck
+window.deletingTodo = deletingTodo
+window.editTodo = editTodo
+window.editContent = editContent
 
 //Variables
 let todos: todo[]
@@ -43,7 +45,7 @@ function showTodos(idFilter: string) {
         li += `<li class="task">
                 <label>
                   <input onclick="updatingCheck(this)" type="checkbox" id="${index}" ${itemCompleted}>
-                  <span class="${index} ${itemCompleted}">${item.content}</span>
+                  <span ondblclick="editTodo(this)" class="${index} ${itemCompleted}">${item.content}</span>
                 </label>
                 <div class="task-close">
                   <i onclick="deletingTodo(${index})" class="fas fa-trash-alt"></i>
@@ -186,4 +188,41 @@ function clearingAllCompleted() {
   clearingAll.style.opacity = '0'
   localStorage.setItem('todo-list', JSON.stringify(todos))
   showTodos(idFilter)
+}
+
+function editTodo(content: any) {
+  const deletingSelector =(<HTMLElement>content.parentElement.parentElement.lastElementChild)
+  const boxInput =(<HTMLInputElement>content.parentElement.firstElementChild)
+  deletingSelector.style.opacity = '0'
+  boxInput.style.opacity = '0'
+  let valueEdit: string = content.innerText
+  content.innerText = ''
+  content.innerHTML += `<input onclick="editContent(this)" class="edit" type="text" value="${valueEdit}"></input>`;
+}
+
+function editContent(input: any) {
+  const spanTag: any = input.parentElement
+  const deletingSelector =(<HTMLElement>spanTag.parentElement.parentElement.lastElementChild)
+  let boxInput = spanTag.parentElement.firstElementChild;
+  input.addEventListener('keyup', (e: any) => {
+    if (e.keyCode === 13) {
+      e.preventDefault()
+      spanTag.innerText = input.value.trim()
+      input.style.display = 'none'
+      deletingSelector.style.opacity = '1'
+      boxInput.style.opacity = '1'
+      todos[spanTag.class[0]].content = spanTag.innerText
+      localStorage.setItem('todo-list', JSON.stringify(todos))
+    }
+  })
+
+  input.addEventListener('blur', (e: any) => {
+    e.preventDefault()
+    spanTag.innerText = input.value.trim()
+    input.style.display = 'none'
+    deletingSelector.style.opacity = '1'
+    boxInput.style.opacity = '1'
+    todos[spanTag.classList[0]].content = spanTag.innerText
+    localStorage.setItem('todo-list', JSON.stringify(todos))
+  })
 }
