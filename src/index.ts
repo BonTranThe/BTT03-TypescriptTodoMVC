@@ -7,25 +7,24 @@ const quantity = (<HTMLElement>document.querySelector('.count'))
 const clearingAll =(<HTMLButtonElement>document.querySelector('.clear-btn'))
 const filterSelector = document.querySelectorAll('.filters > span')
 
-interface todo{
-  content?: string
-  status?: string
+interface Todo {
+  content: string
+  status: 'completed' | 'pending'
 }
 //window running
 window.updatingCheck = updatingCheck
 window.deletingTodo = deletingTodo
-window.editTodo = editTodo
 window.editContent = editContent
 
 //Variables
-let todos: todo[]
+let todos: Todo[]
 let idFilter: string = 'all'
 let count: number
 todos = JSON.parse(localStorage.getItem('todo-list') || '[]')
 
 // Listener Event
-inputtingTodos?.addEventListener('keyup', saveTodos)
-vChecking?.addEventListener('click', checkingAll)
+inputtingTodos.addEventListener('keyup', saveTodos)
+vChecking.addEventListener('click', checkingAll)
 clearingAll.addEventListener('click', clearingAllCompleted)
 
 //Function
@@ -36,8 +35,8 @@ function saveLocal() {
 
 function showTodos(idFilter: string) {
   let li: string = ''
-  let todoPending: todo[]
-  let todoCompleted: todo[]
+  let todoPending: Todo[]
+  let todoCompleted: Todo[]
   count = todos.length
 
   if (todos) {
@@ -51,7 +50,7 @@ function showTodos(idFilter: string) {
         li += `<li class="task">
                 <div class="box-task">
                   <input onclick="updatingCheck(this)" type="checkbox" id="${index}" ${itemCompleted}>
-                  <span ondblclick="editTodo(this)" class="${index} ${itemCompleted}">${item.content}</span>
+                  <input ondblclick="editContent(this)" type="text" class="${index} ${itemCompleted}" ${item.content} value="${todos[index].content}" readonly>
                 </div>
                 <div class="task-close">
                   <i onclick="deletingTodo(${index})" class="fas fa-trash-alt"></i>
@@ -66,14 +65,14 @@ function showTodos(idFilter: string) {
   }
 
   //fix bug hide-show btn clear all
-  todoPending = todos.filter(todoPending => todoPending.status === 'pending');
+  todoPending = todos.filter(todoPending => todoPending.status === 'pending')
   if (todoPending.length === 0 || todoPending.length === todos.length){
     clearingAll.style.opacity = '0'
     vChecking.style.opacity = '0.1'
     vChecking.classList.remove('check-all')
   }
 
-  todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed');
+  todoCompleted = todos.filter(todoCompleted => todoCompleted.status === 'completed')
   if (todoCompleted.length === todos.length){
     clearingAll.style.opacity = '1'
     vChecking.style.opacity = '1'
@@ -102,14 +101,14 @@ function saveTodos(e: any) {
       todos = []
     }
 
-    let todoInfo = {
+    let todoInfo: Todo = {
       content: contentTodo,
       status: 'pending',
     }
 
     todos.push(todoInfo)
     inputtingTodos.value = ''
-    saveLocal();
+    saveLocal()
   }
 }
 
@@ -118,8 +117,8 @@ function updatingCheck(e: any) {
   let taskContent = e?.parentElement?.lastElementChild
   let listTodo = e?.parentElement?.parentElement
 
-  let todoCompleted: todo[]
-  let todoPending: todo[]
+  let todoCompleted: Todo[]
+  let todoPending: Todo[]
   if (e.checked) {
     taskContent.classList.add('checked')
     taskContent.style.opacity = '0.5'
@@ -177,7 +176,7 @@ function checkingAll() {
       item.status = 'pending'
     })
   }
-  saveLocal();
+  saveLocal()
 }
 
 function deletingTodo(idDelete: any) {
@@ -191,9 +190,9 @@ function deletingTodo(idDelete: any) {
 }
 
 function clearingAllCompleted() {
-  let allTodoPending: todo[]
+  let allTodoPending: Todo[]
   allTodoPending= todos.filter(allTodoPending => allTodoPending.status !== 'completed')
-  todos = allTodoPending;
+  todos = allTodoPending
 
   if (todos.length === 0) {
     vChecking.style.display = 'none'
@@ -201,88 +200,122 @@ function clearingAllCompleted() {
   }
   vChecking.classList.remove('check-all')
   clearingAll.style.opacity = '0'
-  saveLocal();
+  saveLocal()
 }
 
-function editTodo(content: any) {
-  const deletingSelector =(<HTMLElement>content.parentElement.parentElement.lastElementChild)
-  const boxInput =(<HTMLInputElement>content.parentElement.firstElementChild)
-  deletingSelector.style.opacity = '0'
-  boxInput.style.opacity = '0'
-  let valueEdit: string = content.innerText
-  content.innerText = ''
-  content.innerHTML += `<input onclick="editContent(this)" class="edit" type="text" value="${valueEdit}"></input>`;
+function onStyleInput(input: HTMLInputElement) {
+  input.style.outline = '0.5px dotted gray'
+  input.style.borderRadius = '5px'
+  input.style.width = '410px'
+  input.style.marginLeft = '40px'
 }
 
-function editContent(input: any) {
-  const spanTag: any = input.parentElement
-  const liTodo: any = input.parentElement.parentElement.parentElement;
-  const deletingSelector =(<HTMLElement>spanTag.parentElement.parentElement.lastElementChild)
-  const spanEdit: any = input.parentElement.firstElementChild
-  let boxInput = spanTag.parentElement.firstElementChild;
-  input.addEventListener('blur keyup', (e: any) => {
-    console.log("ahihi");
-    if (e.type === 'blur' || e.keyCode === 13) {
-      console.log('1');
-      if (input.value === '') {
-        liTodo.remove()
-        todos.splice(spanEdit.classList[0], 1)
-        saveLocal()
-      } else {
-        e.preventDefault()
-        console.log(spanTag);
-        spanTag.innerText = input.value
-        input.style.display = 'none'
-        deletingSelector.style.opacity = '1'
-        boxInput.style.opacity = '1'
-        todos[spanTag?.classList[0]].content = spanTag.innerText
-        saveLocal()
+function offStyleInput(input: HTMLInputElement) {
+  input.style.display = 'none'
+}
+
+function editContent(content: HTMLInputElement) {
+  const eleCheckInput = content?.parentElement?.firstElementChild as HTMLInputElement
+  const trash = content?.parentElement?.parentElement?.lastElementChild as HTMLDivElement
+  const liEle = content?.parentElement?.parentElement as HTMLLIElement
+  const newInput = content?.parentElement?.lastElementChild as HTMLInputElement
+  content.removeAttribute("readonly")
+  onStyleInput(content)
+  eleCheckInput.style.display = 'none'
+  trash.style.display = 'none'
+  content.setSelectionRange(content.value.length, content.value.length)
+  if (content.classList[1] === 'checked') {
+    content.style.textDecoration = 'none'
+    content.addEventListener('keyup', (even: any) =>{
+      if (even.key === 'Enter') {
+        content.removeEventListener('blur', onBlur)
+        if (content.value === '' ) {
+          even.preventDefault()
+          liEle.remove()
+          todos.splice(Number(content.classList[0]), 1)
+          saveLocal()
+          offStyleInput(content)
+          showTodos(idFilter)
+        } else {
+          even.preventDefault()
+          newInput.value = content.value
+          eleCheckInput.style.opacity = '1'
+          trash.style.opacity = '1'
+          offStyleInput(content)
+          todos[Number(content.classList[0])].content = newInput.value
+          saveLocal()
+          showTodos(idFilter)
+        }
       }
-    } else {
-      console.log('2');
+      content.style.textDecoration = 'line-through'
+    })
+    content.addEventListener('blur', onBlur)
+    function onBlur() {
+      if (content.value === '' ) {
+        liEle.remove()
+        todos.splice(Number(content.classList[0]), 1)
+        saveLocal()
+        offStyleInput(content)
+        showTodos(idFilter)
+      } else {
+        newInput.value = content.value
+        eleCheckInput.style.opacity = '1'
+        trash.style.opacity = '1'
+        offStyleInput(content)
+        todos[Number(content.classList[0])].content = newInput.value
+        saveLocal()
+        showTodos(idFilter)
+      }
+    content.style.textDecoration = 'line-through'
     }
-    // if (input.value === '') {
-    //   if (e.keyCode === 13) {
-    //     liTodo.remove();
-    //     todos.splice(spanEdit.classList[0], 1)
-    //     saveLocal()
-    //   }
-    // } else {
-    //   if (e.keyCode === 13) {
-    //     console.log("2");
-    //     e.preventDefault()
-    //     console.log(spanTag);
-    //     spanTag.innerText = input.value
-    //     input.style.display = 'none'
-    //     deletingSelector.style.opacity = '1'
-    //     boxInput.style.opacity = '1'
-    //     todos[spanTag?.classList[0]].content = spanTag.innerText
-    //     saveLocal()
-    //   }
-    // }
-  })
-
-  // input.addEventListener('blur', (e: any) => {
-  //   if (input.value === '') {
-  //     liTodo.remove();
-  //     todos.splice(spanEdit.classList[0], 1)
-  //     saveLocal();
-  //   } else {
-  //     e.preventDefault()
-  //     spanTag.innerText = input.value
-  //     input.style.display = 'none'
-  //     deletingSelector.style.opacity = '1'
-  //     boxInput.style.opacity = '1'
-  //     todos[spanTag?.classList[0]].content = spanTag.innerText
-  //     saveLocal();
-  //   }
-  // })
+  } else {
+    content.addEventListener('keyup', (even: any) =>{
+      if (even.key === 'Enter') {
+        content.removeEventListener('blur', onBlur)
+        if (content.value === '' ) {
+          even.preventDefault()
+          liEle.remove()
+          todos.splice(Number(content.classList[0]), 1)
+          saveLocal()
+          offStyleInput(content)
+          showTodos(idFilter)
+        } else {
+          even.preventDefault()
+          newInput.value = content.value
+          eleCheckInput.style.display = 'none'
+          trash.style.display = 'none'
+          offStyleInput(content)
+          todos[Number(content.classList[0])].content = newInput.value
+          saveLocal()
+          showTodos(idFilter)
+        }
+      }
+    })
+    content.addEventListener('blur', onBlur)
+    function onBlur() {
+      if (content.value === '' ) {
+        liEle.remove()
+        todos.splice(Number(content.classList[0]), 1)
+        saveLocal()
+        offStyleInput(content)
+        showTodos(idFilter)
+      } else {
+        newInput.value = content.value
+        eleCheckInput.style.opacity = '1'
+        trash.style.opacity = '1'
+        offStyleInput(content)
+        todos[Number(content.classList[0])].content = newInput.value
+        saveLocal()
+        showTodos(idFilter)
+      }
+    }
+  }
 }
 
 filterSelector.forEach((btn) => {
   btn.addEventListener('click', () => {
-    document?.querySelector('span.active')?.classList.remove('active');
-    btn.classList.add('active');
+    document?.querySelector('span.active')?.classList.remove('active')
+    btn.classList.add('active')
     showTodos(btn.id)
     return idFilter = btn.id
   })
